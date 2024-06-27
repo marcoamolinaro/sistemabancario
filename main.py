@@ -2,6 +2,15 @@ import textwrap
 from abc import ABC, abstractclassmethod, abstractproperty
 from datetime import datetime
 
+class ContaIterador:
+    def __init__(self, contas):
+        pass
+
+    def __iter__(self):
+        pass
+
+    def __next__(self):
+        pass
 
 class Cliente:
     def __init__(self, endereco):
@@ -132,6 +141,9 @@ class Historico:
                 "data": datetime.now().strftime("%d-%m-%Y %H:%M:%s"),
             }
         )
+    
+    def gerar_relatorio(self, tipo_transacao=None):
+        pass
 
 
 class Transacao(ABC):
@@ -174,6 +186,8 @@ class Deposito(Transacao):
         if sucesso_transacao:
             conta.historico.adicionar_transacao(self)
 
+def log_transacao(func):
+    pass
 
 def menu():
     menu = """\n
@@ -202,7 +216,7 @@ def recuperar_conta_cliente(cliente):
     # FIXME: não permite cliente escolher a conta
     return cliente.contas[0]
 
-
+@log_transacao
 def depositar(clientes):
     cpf = input("Informe o CPF do cliente: ")
     cliente = filtrar_cliente(cpf, clientes)
@@ -220,7 +234,7 @@ def depositar(clientes):
 
     cliente.realizar_transacao(conta, transacao)
 
-
+@log_transacao
 def sacar(clientes):
     cpf = input("Informe o CPF do cliente: ")
     cliente = filtrar_cliente(cpf, clientes)
@@ -238,7 +252,7 @@ def sacar(clientes):
 
     cliente.realizar_transacao(conta, transacao)
 
-
+@log_transacao
 def exibir_extrato(clientes):
     cpf = input("Informe o CPF do cliente: ")
     cliente = filtrar_cliente(cpf, clientes)
@@ -265,7 +279,7 @@ def exibir_extrato(clientes):
     print(f"\nSaldo:\n\tR$ {conta.saldo:.2f}")
     print("==========================================")
 
-
+@log_transacao
 def criar_cliente(clientes):
     cpf = input("Informe o CPF (somente número): ")
     cliente = filtrar_cliente(cpf, clientes)
@@ -284,7 +298,7 @@ def criar_cliente(clientes):
 
     print("\n=== Cliente criado com sucesso! ===")
 
-
+@log_transacao
 def criar_conta(numero_conta, clientes, contas):
     cpf = input("Informe o CPF do cliente: ")
     cliente = filtrar_cliente(cpf, clientes)
