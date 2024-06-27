@@ -4,18 +4,31 @@ from datetime import datetime
 
 class ContaIterador:
     def __init__(self, contas):
-        pass
+        self.contas = contas
+        self._index = 0
 
     def __iter__(self):
-        pass
+        return self
 
     def __next__(self):
-        pass
+        try:
+            conta = self.contas[self._index]
+            return f"""\
+            Agência:\t{conta.agencia}
+            Número:\t\t{conta.numero}
+            Titular:\t{conta.cliente.nome}
+            Saldo:\t\tR$ {conta.saldo:.2f}
+        """
+        except IndexError:
+            raise StopIteration
+        finally:
+            self._index += 1            
 
 class Cliente:
     def __init__(self, endereco):
         self.endereco = endereco
         self.contas = []
+        self.indice_conta = 0
 
     def realizar_transacao(self, conta, transacao):
         transacao.registrar(conta)
@@ -143,7 +156,9 @@ class Historico:
         )
     
     def gerar_relatorio(self, tipo_transacao=None):
-        pass
+        for transacao in self._transacoes:
+            if tipo_transacao is None or transacao["tipo"].lower() == tipo_transacao.lower():
+                yield transacao
 
 
 class Transacao(ABC):
@@ -187,7 +202,12 @@ class Deposito(Transacao):
             conta.historico.adicionar_transacao(self)
 
 def log_transacao(func):
-    pass
+    def envelope(*args, **kwargs):
+        resultado = func(*args, **kwargs)
+        print(f"{datetime.now()}: {func.__name__.upper()}")
+        return resultado
+    
+    return envelope
 
 def menu():
     menu = """\n
@@ -266,14 +286,15 @@ def exibir_extrato(clientes):
         return
 
     print("\n================ EXTRATO ================")
-    transacoes = conta.historico.transacoes
-
     extrato = ""
-    if not transacoes:
-        extrato = "Não foram realizadas movimentações."
-    else:
-        for transacao in transacoes:
-            extrato += f"\n{transacao['tipo']}:\n\tR$ {transacao['valor']:.2f}"
+    tem_transacao = False
+
+    for transacao in conta.historico.gerar_relatorio(tipo_transacao="saque"):
+        tem_transacao = True
+        extrato += f"\n{transacao['tipo']}:\n\tR$ {transacao['valor']:.2f}"
+
+    if not tem_transacao:
+        extrato = "Não foram realizadas movimentações"
 
     print(extrato)
     print(f"\nSaldo:\n\tR$ {conta.saldo:.2f}")
